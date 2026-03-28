@@ -196,6 +196,33 @@ if st.button("Generate Situation Report"):
             st.error(f"Report generation failed: {e}")
 
 st.divider()
+
+import os
+from PIL import Image
+
+st.subheader("R Statistical Analysis Report")
+
+col_r1, col_r2 = st.columns(2)
+
+with col_r1:
+    if os.path.exists("outputs/correlation_matrix.png"):
+        st.image("outputs/correlation_matrix.png", 
+                 caption="Correlation matrix - WHO indicators (ECOWAS)")
+    else:
+        st.info("Run: Rscript r_analysis/analysis.R to generate this chart.")
+
+with col_r2:
+    if os.path.exists("outputs/niger_u5mr_trend.png"):
+        st.image("outputs/niger_u5mr_trend.png",
+                 caption="Under-five mortality trend - Niger")
+    else:
+        st.info("Run: Rscript r_analysis/analysis.R to generate this chart.")
+
+if os.path.exists("outputs/regional_summary.csv"):
+    import pandas as pd
+    r_summary = pd.read_csv("outputs/regional_summary.csv")
+    st.dataframe(r_summary, use_container_width=True)
+
 st.caption(
     "Built with Streamlit, Plotly, Hugging Face Transformers. "
     "Data: WHO Global Health Observatory (GHO OData API). "
