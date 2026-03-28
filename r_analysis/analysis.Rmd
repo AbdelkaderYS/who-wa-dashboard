@@ -1,0 +1,141 @@
+---
+title: "WHO Health Indicators - West Africa (ECOWAS)"
+subtitle: "Statistical Analysis Report"
+author: "Abdel Kader Younoussi Saley"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width  = 9,
+  fig.height = 5
+)
+source("analysis.R")
+```
+
+# Overview
+
+This report presents a statistical analysis of WHO health indicators for the
+15 ECOWAS member states. Data is ingested automatically from the
+WHO Global Health Observatory API via the Python pipeline and exported
+to CSV for R-based analysis.
+
+**Indicators covered:**
+
+- Estimated malaria deaths
+- Under-five mortality rate (per 1,000 live births)
+- Maternal mortality ratio (per 100,000 live births)
+- Nurses and midwives per 10,000 population
+- Tuberculosis incidence (per 100,000 population)
+- Wasting prevalence in children under 5 (%)
+
+---
+
+# Data Summary
+
+```{r load-data}
+df <- load_who_data()
+```
+
+```{r summary-table}
+kable(
+  df %>%
+    group_by(indicator) %>%
+    summarise(
+      Countries    = n_distinct(country),
+      Years        = paste(min(year), "-", max(year)),
+      Observations = n(),
+      Mean         = round(mean(value, na.rm = TRUE), 2),
+      Min          = round(min(value, na.rm = TRUE), 2),
+      Max          = round(max(value, na.rm = TRUE), 2)
+    ),
+  caption = "Descriptive statistics by indicator"
+)
+```
+
+---
+
+# Correlation Analysis
+
+The correlation matrix below examines relationships between health indicators
+at country level, using the most recent available observation per country.
+
+```{r correlation-plot, fig.height=7}
+cor_result <- compute_correlation(df)
+plot_correlation(cor_result$cor_matrix)
+```
+
+---
+
+# Trend Analysis - Niger
+
+Niger is selected as a focus country given its representative profile
+among low-income West African states. A linear trend model is fitted
+for each available indicator.
+
+## Under-five Mortality Rate
+
+```{r niger-u5mr}
+trend <- fit_country_trend(df, "Niger", "MDG_0000000007")
+plot_trend(trend, "Niger", "Under-five mortality rate (per 1,000 live births)")
+```
+
+```{r niger-u5mr-stats}
+if (!is.null(trend)) {
+  kable(
+    trend$tidy %>% select(term, estimate, std.error, statistic, p.value) %>%
+      mutate(across(where(is.numeric), ~ round(., 4))),
+    caption = "Linear model coefficients - Niger U5MR"
+  )
+}
+```
+
+## Maternal Mortality Ratio
+
+```{r niger-mmr}
+trend_mmr <- fit_country_trend(df, "Niger", "MDG_0000000026")
+plot_trend(trend_mmr, "Niger", "Maternal mortality ratio (per 100,000 live births)")
+```
+
+---
+
+# Regional Summary
+
+```{r regional-table}
+regional_tbl <- build_regional_table(df)
+kable(
+  regional_tbl %>% select(country, indicator, latest_year, latest_value, trend),
+  caption = "Latest values and trend direction - ECOWAS member states"
+)
+```
+
+---
+
+# Methodology Notes
+
+**Data source:** WHO Global Health Observatory OData API
+(`https://ghoapi.azureedge.net/api`)
+
+**Pipeline:** Data ingested via Python (`pipeline.py`), exported to CSV,
+loaded here via `readr`. This separation ensures reproducibility:
+the R analysis is independent of the Python environment.
+
+**Trend model:** Ordinary least squares regression (`lm`) with year as
+predictor. Slope direction (positive/negative) used to classify trends.
+Statistical significance assessed at p < 0.05.
+
+**Correlation:** Pearson correlation computed on latest available
+observation per country per indicator, using pairwise complete observations.
+
+---
+
+*Report generated automatically. Data reflects WHO GHO as of last pipeline run.*
