@@ -1,21 +1,30 @@
 """
 ai_module.py
-AI-generated situation reports and rule-based alerts
+Automated situation reports and rule-based regional benchmarking
 for West African health indicators.
+
+The Hugging Face summarizer is optional: transformers/torch are imported
+lazily so the dashboard runs without them installed.
 """
 
 import pandas as pd
-from transformers import pipeline
 
 
 def load_summarizer():
     """
     Load a lightweight Hugging Face summarization model.
-    facebook/bart-large-cnn runs on CPU, no GPU required.
+    sshleifer/distilbart-cnn-12-6 runs on CPU, no GPU required.
+
+    Returns None if transformers/torch are not installed.
     """
+    try:
+        from transformers import pipeline
+    except ImportError:
+        return None
+
     summarizer = pipeline(
         "summarization",
-        model="facebook/bart-large-cnn",
+        model="sshleifer/distilbart-cnn-12-6",
         device=-1
     )
     return summarizer
@@ -63,9 +72,9 @@ def build_country_report(df: pd.DataFrame, country: str) -> str:
 def generate_insight(summarizer, report_text: str) -> str:
     """
     Generate a concise AI summary from a situation report.
-    Falls back gracefully for short texts.
+    Falls back gracefully for short texts or when no model is available.
     """
-    if len(report_text.split()) < 40:
+    if summarizer is None or len(report_text.split()) < 40:
         return report_text
 
     result = summarizer(
@@ -98,8 +107,10 @@ def detect_regional_outliers(df: pd.DataFrame, indicator_code: str) -> pd.DataFr
     regional_std = ind_df["value"].std()
 
     def classify(val):
-        if regional_std == 0:
-            return "Average"
+        # std() is NaN with a single country and 0 with identical values:
+        # no meaningful deviation in either case.
+        if pd.isna(regional_std) or regional_std == 0:
+            return "Within average range"
         z = (val - regional_mean) / regional_std
         if z > 1:
             return "Above average"
