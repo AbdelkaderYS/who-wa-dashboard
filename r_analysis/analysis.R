@@ -11,9 +11,13 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(forecast)
 library(broom)
 library(knitr)
+
+# Showcase trend plot parameters (any country/indicator from the dataset)
+TREND_COUNTRY   <- "Niger"
+TREND_INDICATOR <- "MDG_0000000007"
+TREND_LABEL     <- "Under-five mortality rate (per 1,000 live births)"
 
 # ── Data loading ──────────────────────────────────────────────────────────────
 
@@ -56,14 +60,17 @@ compute_correlation <- function(df) {
     select(-country) %>%
     mutate(across(everything(), as.numeric))
 
-  # Pearson correlation matrix
-  cor_matrix <- cor(numeric_cols, use = "pairwise.complete.obs", method = "pearson")
+  # Spearman (rank-based) is the primary method: robust to the extreme values
+  # (e.g. Nigeria's absolute counts) that dominate a 15-country sample.
+  # Pearson is kept for reference.
+  cor_spearman <- cor(numeric_cols, use = "pairwise.complete.obs", method = "spearman")
+  cor_pearson  <- cor(numeric_cols, use = "pairwise.complete.obs", method = "pearson")
 
-  return(list(wide = wide, cor_matrix = cor_matrix))
+  return(list(wide = wide, cor_matrix = cor_spearman, cor_pearson = cor_pearson))
 }
 
 
-plot_correlation <- function(cor_matrix) {
+plot_correlation <- function(cor_matrix, method_label = "Spearman rho") {
   # Convert to long format for ggplot
   cor_df <- as.data.frame(cor_matrix)
   cor_df$indicator_x <- rownames(cor_df)
@@ -80,8 +87,11 @@ plot_correlation <- function(cor_matrix) {
     ) +
     labs(
       title = "Correlation matrix - WHO health indicators",
-      subtitle = "West Africa (ECOWAS) - Latest available year per country",
-      x = NULL, y = NULL, fill = "Pearson r"
+      subtitle = paste0(
+        "West Africa (ECOWAS) - Latest available year per country - ",
+        method_label, " (rank-based, robust to extreme values; n = 15 countries)"
+      ),
+      x = NULL, y = NULL, fill = method_label
     ) +
     theme_minimal(base_size = 12) +
     theme(
@@ -165,6 +175,32 @@ plot_trend <- function(trend_result, country_name, indicator_label) {
 }
 
 
+# ── Analysis 2b: Trend models for ALL country × indicator pairs ──────────────
+
+fit_all_trends <- function(df, min_years = 4) {
+  # Linear trend per country per indicator: slope, R2, p-value.
+  # Exported for the dashboard so trend inference is not limited to one showcase.
+  df %>%
+    group_by(country, indicator_code, indicator) %>%
+    filter(n() >= min_years) %>%
+    group_modify(function(d, key) {
+      model <- lm(value ~ year, data = d)
+      g <- glance(model)
+      t <- tidy(model)
+      tibble(
+        n_years      = nrow(d),
+        period       = paste0(min(d$year), "-", max(d$year)),
+        slope_per_yr = round(coef(model)[["year"]], 4),
+        r_squared    = round(g$r.squared, 3),
+        p_value      = round(t$p.value[2], 4),
+        significant  = ifelse(t$p.value[2] < 0.05, "Yes", "No")
+      )
+    }) %>%
+    ungroup() %>%
+    arrange(indicator_code, country)
+}
+
+
 # ── Analysis 3: Regional summary table ───────────────────────────────────────
 
 build_regional_table <- function(df) {
@@ -207,24 +243,30 @@ main <- function() {
   # 1. Correlation analysis
   cat("--- Correlation Analysis ---\n")
   cor_result <- compute_correlation(df)
-  cat("Correlation matrix (Pearson):\n")
+  cat("Correlation matrix (Spearman, primary):\n")
   print(round(cor_result$cor_matrix, 3))
+  cat("\nCorrelation matrix (Pearson, reference):\n")
+  print(round(cor_result$cor_pearson, 3))
 
   cor_plot <- plot_correlation(cor_result$cor_matrix)
   ggsave("outputs/correlation_matrix.png", cor_plot, width = 10, height = 8, dpi = 150)
   cat("Saved: outputs/correlation_matrix.png\n\n")
 
-  # 2. Trend modeling - Niger, under-five mortality
-  cat("--- Trend Model: Niger - Under-five mortality ---\n")
-  trend_niger <- fit_country_trend(df, "Niger", "MDG_0000000007")
-  if (!is.null(trend_niger)) {
-    cat("Slope:", trend_niger$slope, "per year\n")
-    cat("R2:", trend_niger$r2, "\n")
-    cat("p-value:", trend_niger$p_value, "\n")
-    trend_plot <- plot_trend(
-      trend_niger, "Niger",
-      "Under-five mortality rate (per 1,000 live births)"
-    )
+  # 2. Trend models for all country x indicator pairs
+  cat("--- Trend Models: all countries x indicators ---\n")
+  all_trends <- fit_all_trends(df)
+  cat("Models fitted:", nrow(all_trends), "\n")
+  write_csv(all_trends, "outputs/trend_models.csv")
+  cat("Saved: outputs/trend_models.csv\n\n")
+
+  # 2b. Showcase trend plot (parametrized at top of file)
+  cat("--- Trend Model:", TREND_COUNTRY, "-", TREND_LABEL, "---\n")
+  trend_showcase <- fit_country_trend(df, TREND_COUNTRY, TREND_INDICATOR)
+  if (!is.null(trend_showcase)) {
+    cat("Slope:", trend_showcase$slope, "per year\n")
+    cat("R2:", trend_showcase$r2, "\n")
+    cat("p-value:", trend_showcase$p_value, "\n")
+    trend_plot <- plot_trend(trend_showcase, TREND_COUNTRY, TREND_LABEL)
     ggsave("outputs/niger_u5mr_trend.png", trend_plot, width = 9, height = 5, dpi = 150)
     cat("Saved: outputs/niger_u5mr_trend.png\n\n")
   }
