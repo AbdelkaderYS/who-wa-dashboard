@@ -27,9 +27,49 @@ INDICATORS = {
     "MALARIA_EST_DEATHS": "Estimated malaria deaths",
     "MDG_0000000007": "Under-five mortality rate (per 1,000 live births)",
     "MDG_0000000026": "Maternal mortality ratio (per 100,000 live births)",
-    "WHS4_100": "Nurses and midwives (per 10,000 population)",
-    "WHS6_102": "Tuberculosis incidence (per 100,000 population)",
-    "NUTRITION_ANT_WHZ_NE2": "Wasting prevalence in children under 5 (%)",
+    "HWF_0006": "Nurses and midwives (per 10,000 population)",
+    "MDG_0000000020": "Tuberculosis incidence (per 100,000 population)",
+    "NUTRITION_WH_2": "Wasting prevalence in children under 5 (%)",
+}
+
+# Compact labels and units for KPI cards
+INDICATOR_META = {
+    "MALARIA_EST_DEATHS": {
+        "short": "Malaria deaths",
+        "unit": "estimated deaths",
+        "higher_is_better": False,
+        "absolute_count": True,  # not population-normalized
+    },
+    "MDG_0000000007": {
+        "short": "Under-5 mortality",
+        "unit": "per 1,000 live births",
+        "higher_is_better": False,
+        "absolute_count": False,
+    },
+    "MDG_0000000026": {
+        "short": "Maternal mortality",
+        "unit": "per 100,000 live births",
+        "higher_is_better": False,
+        "absolute_count": False,
+    },
+    "HWF_0006": {
+        "short": "Nurses & midwives",
+        "unit": "per 10,000 population",
+        "higher_is_better": True,
+        "absolute_count": False,
+    },
+    "MDG_0000000020": {
+        "short": "TB incidence",
+        "unit": "per 100,000 population",
+        "higher_is_better": False,
+        "absolute_count": False,
+    },
+    "NUTRITION_WH_2": {
+        "short": "Child wasting",
+        "unit": "% of children under 5",
+        "higher_is_better": False,
+        "absolute_count": False,
+    },
 }
 
 # WHO GHO OData API base URL
