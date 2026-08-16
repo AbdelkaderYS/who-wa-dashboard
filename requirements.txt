@@ -1,6 +1,9 @@
+# Core
 streamlit==1.32.0
 pandas==2.2.0
 plotly==5.19.0
 requests==2.31.0
+
+# Optional — AI summarizer (heavy: ~2 GB). The dashboard runs without them.
 transformers==4.38.0
 torch==2.2.0
