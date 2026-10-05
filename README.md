@@ -1,4 +1,4 @@
-# WHO Health Indicators Dashboard - West Africa (ECOWAS)
+# WHO Health Indicators Dashboard - West Africa
 
 ### Which West African countries are falling behind on child mortality, malaria or maternal health, and is the gap closing?
 
@@ -7,14 +7,14 @@ indicator, downloading a country at a time, and rebuilding the comparison by han
 
 This project does it for you.
 
-It pulls six core health indicators for the 15 ECOWAS member states straight from
+It pulls six core health indicators for 15 West African countries straight from
 the WHO GHO API, cleans them, and shows where each country stands, how it got
 there, and how far it sits from the regional average.
 
 ## What it does
 
-1. **Fetches** the data from the WHO GHO API, refreshed hourly, with an offline
-   fallback to the last good snapshot
+1. **Fetches** the data from the WHO GHO API once a week, since WHO updates these
+   estimates only a few times a year, with an offline fallback to the last good snapshot
 2. **Cleans** it: national totals only (series broken down by sex, age or wealth
    are excluded so country figures stay valid), type checks, deduplication
 3. **Shows** a country KPI profile, a regional map, a country ranking, historical
@@ -36,7 +36,8 @@ there, and how far it sits from the regional average.
 
 ## Countries covered
 
-All 15 ECOWAS member states: Benin, Burkina Faso, Cape Verde, Cote d'Ivoire,
+15 West African countries: the 12 ECOWAS members, plus Burkina Faso, Mali and Niger,
+which left ECOWAS in January 2025. Benin, Burkina Faso, Cape Verde, Cote d'Ivoire,
 Gambia, Ghana, Guinea, Guinea-Bissau, Liberia, Mali, Niger, Nigeria, Senegal,
 Sierra Leone, Togo.
 

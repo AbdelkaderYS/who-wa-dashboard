@@ -1,6 +1,6 @@
 """
 app.py
-WHO Health Indicators Dashboard - West Africa (ECOWAS)
+WHO Health Indicators Dashboard - West Africa
 Institutional-style dashboard on top of the WHO Global Health Observatory API.
 
 Run: streamlit run app.py
@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from ai_module import build_country_report, generate_insight, load_summarizer
-from config import ECOWAS_COUNTRIES, INDICATOR_META, INDICATORS
+from config import WEST_AFRICA_COUNTRIES, INDICATOR_META, INDICATORS
 from pipeline import get_country_trend, get_latest_values, load_with_fallback
 
 # ── Design tokens ─────────────────────────────────────────────────────────────
@@ -182,7 +182,7 @@ st.markdown(
 
 # ── Data loading ──────────────────────────────────────────────────────────────
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=7 * 24 * 3600, show_spinner=False)  # WHO updates a few times a year
 def get_data():
     df, meta = load_with_fallback()
     return df, meta
@@ -212,7 +212,7 @@ selected_label = st.sidebar.selectbox("Indicator", indicator_labels)
 selected_indicator = indicator_codes[indicator_labels.index(selected_label)]
 selected_meta = INDICATOR_META[selected_indicator]
 
-countries = sorted(ECOWAS_COUNTRIES.values())
+countries = sorted(WEST_AFRICA_COUNTRIES.values())
 selected_country = st.sidebar.selectbox("Country", countries, index=countries.index("Niger"))
 
 year_min, year_max = int(df["year"].min()), int(df["year"].max())
@@ -221,7 +221,7 @@ year_range = st.sidebar.slider("Period", year_min, year_max, (year_min, year_max
 st.sidebar.divider()
 st.sidebar.caption(
     "**Source** - WHO Global Health Observatory (GHO OData API). "
-    "Data refreshed hourly; cached snapshot used when the API is unreachable."
+    "Data checked weekly; cached snapshot used when the API is unreachable."
 )
 
 df_period = df[(df["year"] >= year_range[0]) & (df["year"] <= year_range[1])]
@@ -240,7 +240,7 @@ else:
 st.markdown(
     f"""
     <div class="who-header">
-      <h1>Health Indicators - West Africa (ECOWAS)</h1>
+      <h1>Health Indicators - West Africa</h1>
       <div class="sub">Regional health monitoring · 15 member states · 6 core indicators ·
       Data: WHO Global Health Observatory</div>
       <span class="who-badge">{badge}</span>
@@ -484,7 +484,7 @@ with tab_data:
 # ── Footer ────────────────────────────────────────────────────────────────────
 
 st.caption(
-    "WHO Global Health Observatory (GHO OData API) · 15 ECOWAS member states · "
+    "WHO Global Health Observatory (GHO OData API) · 15 West African countries · "
     "Built with Streamlit, Plotly and R · National totals only (disaggregated "
     "series excluded at ingestion)."
 )

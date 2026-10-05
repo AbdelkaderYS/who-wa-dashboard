@@ -1,7 +1,7 @@
 """
 pipeline.py
 Automated data ingestion and processing from WHO Global Health Observatory API.
-Covers 15 ECOWAS member states across 6 health indicators.
+Covers 15 West African countries across 6 health indicators.
 
 WHO GHO OData API documentation:
 https://www.who.int/data/gho/info/gho-odata-api
@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 import pandas as pd
 import requests
 
-from config import GHO_API_BASE, ECOWAS_COUNTRIES, INDICATORS
+from config import GHO_API_BASE, WEST_AFRICA_COUNTRIES, INDICATORS
 
 CACHE_PATH = "data/who_wa_indicators.csv"
 
@@ -162,7 +162,7 @@ def clean_indicator(df: pd.DataFrame, indicator_code: str, indicator_label: str)
     df = df.groupby(["country_code", "year"], as_index=False)["value"].mean()
 
     # Map country codes to country names
-    df["country"] = df["country_code"].map(ECOWAS_COUNTRIES)
+    df["country"] = df["country_code"].map(WEST_AFRICA_COUNTRIES)
     df = df.dropna(subset=["country"])
 
     df["indicator_code"] = indicator_code
@@ -173,11 +173,11 @@ def clean_indicator(df: pd.DataFrame, indicator_code: str, indicator_label: str)
 
 def load_all_indicators() -> pd.DataFrame:
     """
-    Full pipeline: fetch and clean all indicators for all ECOWAS countries.
+    Full pipeline: fetch and clean all indicators for all 15 countries.
     Returns a single long-format DataFrame. Raises RuntimeError if nothing
     could be fetched.
     """
-    country_codes = list(ECOWAS_COUNTRIES.keys())
+    country_codes = list(WEST_AFRICA_COUNTRIES.keys())
     all_frames = []
 
     for code, label in INDICATORS.items():

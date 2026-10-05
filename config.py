@@ -1,10 +1,11 @@
 """
 config.py
-ECOWAS countries and WHO GHO indicator definitions.
+West African countries and WHO GHO indicator definitions.
 """
 
-# 15 ECOWAS member states with ISO-3 codes used by WHO GHO API
-ECOWAS_COUNTRIES = {
+# 15 West African countries: the 12 ECOWAS members, plus Burkina Faso, Mali and Niger,
+# which left ECOWAS in January 2025. ISO-3 codes used by the WHO GHO API
+WEST_AFRICA_COUNTRIES = {
     "BEN": "Benin",
     "BFA": "Burkina Faso",
     "CPV": "Cape Verde",

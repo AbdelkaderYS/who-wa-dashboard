@@ -1,5 +1,5 @@
 # analysis.R
-# Statistical analysis of WHO health indicators - West Africa (ECOWAS)
+# Statistical analysis of WHO health indicators - West Africa
 # Reads data exported by the Python pipeline (CSV format)
 # Produces: correlation analysis, trend modeling, regional summary table
 #
@@ -88,7 +88,7 @@ plot_correlation <- function(cor_matrix, method_label = "Spearman rho") {
     labs(
       title = "Correlation matrix - WHO health indicators",
       subtitle = paste0(
-        "West Africa (ECOWAS) - Latest available year per country - ",
+        "West Africa - Latest available year per country - ",
         method_label, " (rank-based, robust to extreme values; n = 15 countries)"
       ),
       x = NULL, y = NULL, fill = method_label

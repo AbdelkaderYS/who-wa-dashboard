@@ -89,7 +89,7 @@ def generate_insight(summarizer, report_text: str) -> str:
 def detect_regional_outliers(df: pd.DataFrame, indicator_code: str) -> pd.DataFrame:
     """
     Identify countries performing significantly above or below
-    the ECOWAS regional average for a given indicator (latest year).
+    the regional average for a given indicator (latest year).
 
     Returns a DataFrame flagging each country as Above, Below, or Average.
     """
